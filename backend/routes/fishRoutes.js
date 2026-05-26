@@ -1,45 +1,38 @@
-const express = require("express");
-const router = express.Router();
-const db = require("../db");
+app.get("/recommend", (req, res) => {
+    const tempNum = temp ? Number(temp) : null;
+const phNum = ph ? Number(ph) : null;
+const tdsNum = tds ? Number(tds) : null;
 
-router.get("/:name", (req, res) => {
-    const name = req.params.name;
-
-    const sql = `
+    let sql = `
         SELECT f.*, p.*
         FROM fish f
         JOIN fish_parameters p ON f.id = p.fish_id
-        WHERE LOWER(f.name) = LOWER(?)
+        WHERE 1=1
     `;
 
-    db.query(sql, [name], (err, result) => {
-        if (err) return res.status(500).json(err);
+    let values = [];
 
-        if (result.length === 0) {
-            return res.status(404).json({ message: "Fish not found" });
+    if (temp !== undefined && temp !== "") {
+        sql += " AND p.temp_min <= ? AND p.temp_max >= ?";
+        values.push(temp, temp);
+    }
+
+    if (ph !== undefined && ph !== "") {
+        sql += " AND p.ph_min <= ? AND p.ph_max >= ?";
+        values.push(ph, ph);
+    }
+
+    if (tds !== undefined && tds !== "") {
+        sql += " AND p.tds_min <= ? AND p.tds_max >= ?";
+        values.push(tds, tds);
+    }
+
+    db.query(sql, values, (err, result) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).json(err);
         }
-
-        res.json(result[0]);
-    });
-});
-
-router.get("/recommend", (req, res) => {
-    const { temp, ph, tds } = req.query;
-
-    const sql = `
-        SELECT f.name, f.image_url, p.*
-        FROM fish f
-        JOIN fish_parameters p ON f.id = p.fish_id
-        WHERE ? BETWEEN p.temp_min AND p.temp_max
-          AND ? BETWEEN p.ph_min AND p.ph_max
-          AND ? BETWEEN p.tds_min AND p.tds_max
-    `;
-
-    db.query(sql, [temp, ph, tds], (err, result) => {
-        if (err) return res.status(500).json(err);
 
         res.json(result);
     });
 });
-
-module.exports = router;
