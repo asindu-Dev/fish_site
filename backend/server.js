@@ -1,5 +1,7 @@
 const express = require("express");
 const app = express();
+const cors = require("cors");
+app.use(cors());
 
 const db = require("./db"); // 👈 add this
 
@@ -16,7 +18,7 @@ app.get("/test-db", (req, res) => {
     });
 });
 
-const PORT = 3000;
+const PORT = 5000;
 
 app.listen(PORT, () => {
     console.log("Server running on port " + PORT);
